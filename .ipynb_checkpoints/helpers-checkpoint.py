@@ -2,7 +2,7 @@
 
 #we can use the type annotations to define a Vector (which is just an arry of numbers):
 from typing import List
-Vector = List[float]
+Vector = List[int]
 
 height_weight_age = [70, #inches
                      170, #weight
@@ -112,7 +112,7 @@ def vector_magnitude(v: Vector) -> float:
     return math.sqrt(sum_of_vector_squares(v))
 
 assert vector_magnitude([3,4]) ==5 
-print(vector_magnitude([3,4]))
+#print(vector_magnitude([3,4]))
 
 #compute the distance between two vectors v,w. formula is sqrt((v_1-w_1)^2 + ... (v_n-w_n)^2)
 def vector_distance(v: Vector, w: Vector) -> float:
@@ -196,12 +196,13 @@ def standard_deviation_of_data(v: Vector) -> float:
     """the standard deviation is the sqrt of the variance"""
     return math.sqrt(variance_of_data(v))
 
-standard_deviation_of_data([1,2,3,4,5])
+#standard_deviation_of_data([1,2,3,4,5])
 
 def IQR(v: Vector)->float:
     return quantile(v,0.75) - quantile(v, 0.25)
 
 #IQR([1,2,3,4,5])
+
 
 def normal_cdf(x: float, mu: float=0, sigma: float=1) -> float:
     return (1 + math.erf((x-mu) / math.sqrt(2)/ sigma )) /2
@@ -228,4 +229,77 @@ def inverse_normal_cdf(p: float, mu: float=0, sigma: float=1, tolerance: float =
 
     return mid_z
 
+def covariance(xs: Vector, ys: Vector) -> float:
+    return vector_dot_product(de_mean(xs),de_mean(ys))/(len(xs)-1)
+
+        
+def correlation(xs: Vector, ys: Vector) -> float:
+    """Measures how much xs and ys vary in tandem about their means"""
+    stdev_x = standard_deviation_of_data(xs)
+    stdev_y = standard_deviation_of_data(ys)
+
+    if stdev_x > 0 and stdev_y > 0:
+        return covariance(xs,ys) / stdev_x / stdev_y
+    else:
+        return 0 #if no variation, correlation is zero.
+
+
+#Matrices
+from typing import Tuple, List
+
+#define a Matrix
+Matrix = List[List[float]]
+
+def shape(A: Matrix) -> Tuple[int,int]:
+    """returns # of rows and columns of a Matrix"""
+    rows = len(A)
+    columns = len(A[0])
+    return (rows, columns)
+
+def get_row(A: Matrix, i: int) -> Vector:
+    rows, columns = shape(A)
+    assert i <= rows, "you're trying to access a column that doesn't exist"
+    return A[i]
+
+def get_column(A: Matrix, i: int) -> Vector:
+    rows, columns = shape(A)
+    assert i <= columns, "you're trying to access a column that doesn't exist"
+    return [A[j][i] for j in range(rows)]
+
+
+from typing import Callable
+
+#create a Matrix generator functions
+def make_a_matrix(num_rows:int, num_col: int, entry_func:Callable[[int,int], float])->Matrix:
+    """returns a matrix size num_rows x num_cols, whose entries (i,j)-th entry is entry_func(i,j)"""
+    return [[entry_func(i,j)  #given a generator function, create a list or lists.
+             for j in range(num_col)] 
+            for i in range(num_rows)]
+
+
+if __name__ == "__main__":
+
+        #define our A, B matrices
+    A: Matrix = [[1,2,3],
+                 [4,5,6]]
+        
+    B: Matrix = [[1,2],
+                [3,4],
+                [5,6]] #3 rows, 2 columns
     
+    get_column(A, 0)
+    assert shape(A) == (2,3)
+    make_a_matrix(4,4,my_func2)
+    
+    #demo create an identity matrix with 1s on the diagonal.
+    make_a_matrix(5,5, lambda i,j: 1 if i==j else 0) #here we will use a lambda function to pass through to create the matrix
+    
+    #we could also define a matrix null (all zeros)
+    def my_func(i:int ,j:int)->float:
+        return 1 if i==j else 0
+    
+    make_a_matrix(6,6,my_func)
+    
+    #or something more interesting
+    def my_func2(i:int, j:int) -> float:
+        return i*math.sin(90*j)
